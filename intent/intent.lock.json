@@ -1,0 +1,22 @@
+{
+  "security.auth.required": {
+    "value": true,
+    "severity": "block",
+    "scope": "code",
+    "description": "All public routes must require authentication"
+  },
+  "logging.secrets.allowed": {
+    "value": false,
+    "severity": "block",
+    "scope": "code",
+    "description": "Secrets must not be logged"
+  },
+  "infra.database.allowed": {
+    "value": [
+      "postgresql"
+    ],
+    "severity": "block",
+    "scope": "infra",
+    "description": "Only approved databases may be used"
+  }
+}

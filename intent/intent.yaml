@@ -1,0 +1,11 @@
+project:
+  name: example-api
+  type: public_api
+
+security:
+  require_auth: true
+  forbid_secret_logging: true
+
+infra:
+  allowed_databases:
+    - postgresql
