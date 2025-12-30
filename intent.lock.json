@@ -1,0 +1,25 @@
+{
+  "version": "0.1",
+  "project": "AI Intent Enforcement Rail",
+  "rails": [
+    {
+      "id": "AUTH_001",
+      "type": "fastapi_auth",
+      "severity": "error",
+      "description": "All FastAPI routes must enforce authentication",
+      "required_dependencies": ["get_current_user", "require_auth"]
+    },
+    {
+      "id": "LOG_001",
+      "type": "logging",
+      "severity": "warning",
+      "description": "Disallow print statements in production code"
+    },
+    {
+      "id": "DB_001",
+      "type": "database",
+      "severity": "error",
+      "allowed_databases": ["sqlalchemy", "psycopg2"]
+    }
+  ]
+}
