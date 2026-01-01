@@ -1,6 +1,8 @@
 # enforcement/checks/dependency_check.py
 from pathlib import Path
 
+from enforcement.violation import Violation
+
 # Allowed DB packages for PostgreSQL
 ALLOWED_DB_PACKAGES = ["psycopg2", "asyncpg"]
 
@@ -17,10 +19,13 @@ def check_database_usage(rule: dict, repo_root: str) -> list:
             if line.startswith("import") or line.startswith("from"):
                 # crude check: if importing sqlite3, mysql, pymysql, or unapproved packages
                 if any(db in line for db in ["sqlite3", "mysql", "pymysql"]):
-                    violations.append({
-                        "file": str(py_file),
-                        "line": line_no,
-                        "message": f"unapproved database import: {line}"
-                    })
-
+                    violations.append(
+                        Violation(
+                            rule="infra.database.allowed",
+                            message="unapproved database import detected",
+                            file=str(py_file),
+                            line=line_no,
+                            severity=rule.get("severity", "block"),
+                        )
+                    )
     return violations

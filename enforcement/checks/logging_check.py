@@ -1,6 +1,8 @@
 import ast
 from pathlib import Path
 
+from enforcement.types import Violation
+
 def check_logging(rule: dict, repo_root: str) -> list:
     """
     Detect logging of secrets or print statements containing sensitive info.
@@ -23,10 +25,14 @@ def check_logging(rule: dict, repo_root: str) -> list:
                     })
                 # detect logger.info(...), logger.warning(...), etc.
                 elif hasattr(node.func, "attr") and node.func.attr in ("info", "warning", "error", "debug"):
-                    violations.append({
-                        "file": str(py_file),
-                        "line": node.lineno,
-                        "message": f"logging call detected: {node.func.attr} (possible secret leak)"
-                    })
+                    violations.append(
+                        Violation(
+                            rule="logging.secrets.allowed",
+                            message="print statement detected (possible secret leak)",
+                            file=str(py_file),
+                            line=node.lineno,
+                            severity=rule.get("severity", "block"),
+                        )
+                    )
 
     return violations

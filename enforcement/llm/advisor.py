@@ -1,33 +1,43 @@
-# enforcement/llm/advisor.py
 from enforcement.types import Violation
 from enforcement.llm.prompts import build_prompt
 import os
-from openai import OpenAI
+from huggingface_hub import InferenceClient
 import re
 
-
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = InferenceClient(
+    model="meta-llama/Llama-2-7b-chat-hf",
+    token=os.getenv("HF_TOKEN"),
+    timeout=30,
+)
 
 def enrich_violation(v: Violation, code_snippet: str) -> Violation:
+    if not v.code_snippet:
+        return v
+    
     prompt = build_prompt(v, code_snippet)
 
-    response = client.chat.completions.create(
-        model="gpt-4.1-mini",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2
-    )
+    try:
+        response = client.text_generation(
+            prompt,
+            max_new_tokens=200,
+            temperature=0.4,   # lower = safer code
+            top_p=0.9,
+            stop_sequences=["</s>"],
+        )
+        v.suggestion = extract_suggestion(response)
 
-    content = response.choices[0].message.content
+    except Exception as e:
+        v.suggestion = f"# LLM suggestion unavailable: {str(e)}"
 
-    v.suggestion = extract_suggestion(content)
     return v
+
 
 def extract_suggestion(llm_content: str) -> str:
     """
     Extract suggested code snippet from LLM output.
     """
-    # If LLM returns triple-backtick blocks, extract them
     match = re.search(r"```(?:python)?\n(.*?)```", llm_content, re.DOTALL)
     if match:
         return match.group(1).strip()
+
     return llm_content.strip()

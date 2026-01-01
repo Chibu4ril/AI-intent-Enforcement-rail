@@ -17,13 +17,15 @@ def check_auth(rule: dict, repo_root: str) -> list:
 
         for node in ast.walk(tree):
             if is_fastapi_route(node) and not has_auth_dependency(node):
-                violations.append(Violation(
-                        rule=rule_id,
+                violations.append(
+                    Violation(
+                        rule="security.auth.required",
                         message="Route missing authentication dependency",
                         file=str(py_file),
                         line=node.lineno,
-                        suggestion="@router.get(..., dependencies=[Depends(get_current_user)])"
-                    ))
+                        severity=rule.get("severity", "block"),
+                    )
+                )
 
     return violations
 
